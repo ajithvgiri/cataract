@@ -10,12 +10,14 @@ import android.provider.MediaStore
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.ajithvgiri.cataract.api.ApiService
 import com.ajithvgiri.cataract.utils.*
 import com.ajithvgiri.cataract.utils.PermissionHandler.galleryPermission
-import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.google.firebase.storage.UploadTask
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -30,6 +32,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mStorageRef: StorageReference
     private var uploadUri: Uri? = null
 
+    private val apiService by lazy {
+        ApiService.create()
+    }
+    var disposable: Disposable? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -37,6 +44,8 @@ class MainActivity : AppCompatActivity() {
         mStorageRef = FirebaseStorage.getInstance().reference
 
         view = window.decorView.findViewById(android.R.id.content)
+
+
 
         buttonChoose.setOnClickListener {
             checkPermission()
@@ -162,6 +171,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun uploadImage(uploadUri: Uri) {
+        progressBar.visibility = View.VISIBLE
         val imageReference = mStorageRef.child("images/${uploadUri.lastPathSegment}")
         val uploading = imageReference.putFile(uploadUri)
 
@@ -176,10 +186,35 @@ class MainActivity : AppCompatActivity() {
             if (task.isSuccessful) {
                 val downloadUri = task.result
                 view.snack("Image Uploaded Successfully") {
-                    
+
                 }
                 println("downloadable path from firestore $downloadUri")
+                getInfoFromImage(downloadUri.toString())
             }
         }
+    }
+
+
+    private fun getInfoFromImage(image: String) {
+        val hashMap = HashMap<String, String>()
+        hashMap.put("image", image)
+
+        disposable = apiService.neuraltalk(hashMap)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { result ->
+                    println("result from server ${result.output}")
+                    progressBar.visibility = View.GONE
+                    textView.text = result.output
+                },
+                { error ->
+                    println("error from server ${error.localizedMessage}")
+                    progressBar.visibility = View.GONE
+                    view.snack("${error.localizedMessage}") {
+
+                    }
+                }
+            )
     }
 }
