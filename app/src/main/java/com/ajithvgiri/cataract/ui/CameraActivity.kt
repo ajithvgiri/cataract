@@ -1,9 +1,10 @@
-package com.ajithvgiri.cataract
+package com.ajithvgiri.cataract.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.os.Bundle
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
@@ -14,6 +15,8 @@ import androidx.camera.core.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import com.ajithvgiri.cataract.R
 import com.ajithvgiri.cataract.camera.LuminosityAnalyzer
 import java.util.concurrent.Executors
 
@@ -28,6 +31,8 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 
+    private lateinit var luminosityAnalyzer: LuminosityAnalyzer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
@@ -40,13 +45,31 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
         if (allPermissionsGranted()) {
             viewFinder.post { startCamera() }
         } else {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+            ActivityCompat.requestPermissions(
+                this,
+                REQUIRED_PERMISSIONS,
+                REQUEST_CODE_PERMISSIONS
+            )
         }
 
         // Every time the provided texture view changes, recompute layout
         viewFinder.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             updateTransform()
         }
+
+        val modalBottomSheet = ModalBottomSheet()
+
+        luminosityAnalyzer = LuminosityAnalyzer()
+        luminosityAnalyzer.showDialog.observe(this@CameraActivity, Observer {
+            if (it) {
+                Log.d("CameraX", "isShowing ${modalBottomSheet.dialog?.isShowing}")
+                if (modalBottomSheet.dialog?.isShowing == false || modalBottomSheet.dialog?.isShowing == null) {
+                    modalBottomSheet.show(supportFragmentManager, ModalBottomSheet.TAG)
+                }
+            }
+        })
+
+
     }
 
 
@@ -90,7 +113,7 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
 
         // Build the image analysis use case and instantiate our analyzer
         val analyzerUseCase = ImageAnalysis(analyzerConfig).apply {
-            setAnalyzer(executor, LuminosityAnalyzer())
+            setAnalyzer(executor, luminosityAnalyzer)
         }
 
         // Bind use cases to lifecycle
