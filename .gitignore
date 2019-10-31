@@ -1,7 +1,3 @@
-
-# Created by https://www.gitignore.io/api/android,androidstudio
-# Edit at https://www.gitignore.io/?templates=android,androidstudio
-
 ### Android ###
 # Built application files
 *.apk
@@ -202,4 +198,5 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 
-# End of https://www.gitignore.io/api/android,androidstudio
+### Firebase
+app/google-services.json
