@@ -1,0 +1,47 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/code
+    docker:
+      - image: circleci/android:api-25-alpha
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - restore_cache:
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "browserstack_android_sample/build.gradle" }}
+      #      - run:
+      #         name: Chmod permissions #if permission for Gradlew Dependencies fail, use this.
+      #         command: sudo chmod +x ./gradlew
+      - run:
+          name: Download Dependencies
+          command: ./gradlew androidDependencies
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "browserstack_android_sample/build.gradle" }}
+
+      # Generate apk
+      - run: ./gradlew assembleDebug
+
+      # Upload app to BrowserStack and set app url in an environment variable.
+      # Here replace browserstack_android_sample-debug.apk with name of your apk.
+      #      - run:
+      #          name : App upload and Set app id in environment variable.
+      #          command : |
+      #            APP_UPLOAD_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST https://api-cloud.browserstack.com/app-automate/upload -F "file=@browserstack_android_sample/build/outputs/apk/debug/browserstack_android_sample-debug.apk")
+      #            echo "APP_UPLOAD_RESPONSE :  " + $APP_UPLOAD_RESPONSE
+      #            APP_ID=$(echo $APP_UPLOAD_RESPONSE | jq -r ".app_url")
+      #            if [ $APP_ID != null ]; then
+      #              echo "Apk uploaded to BrowserStack with app id : ",$APP_ID;
+      #              echo "export BROWSERSTACK_APP_ID=$APP_ID" >> $BASH_ENV;
+      #              source $BASH_ENV;
+      #              echo "Setting value of BROWSERSTACK_APP_ID in environment variables to  ",$APP_ID;
+      #            else
+      #              UPLOAD_ERROR_MESSAGE=$(echo $APP_UPLOAD_RESPONSE | jq -r ".error")
+      #              echo "App upload failed, reason : ",$UPLOAD_ERROR_MESSAGE
+      #              exit 1;
+      #            fi
+
+      # run tests!
+      - run: ./gradlew test
