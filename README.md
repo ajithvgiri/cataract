@@ -1,4 +1,4 @@
-# Catarat
+# Project Catarat
 
 Over 9 million people in India are affected by Cataract (in 2015), and also 15 million people in India have blindness problems.
 
