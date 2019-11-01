@@ -1,9 +1,12 @@
 package com.ajithvgiri.cataract.ui
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Matrix
+import android.media.AudioManager
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
@@ -19,9 +22,10 @@ import androidx.lifecycle.Observer
 import com.ajithvgiri.cataract.R
 import com.ajithvgiri.cataract.camera.NeuralTalkAnalyzer
 import kotlinx.android.synthetic.main.activity_camera.*
+import java.util.*
 import java.util.concurrent.Executors
 
-class CameraActivity : AppCompatActivity(), LifecycleOwner {
+class CameraActivity : AppCompatActivity(), LifecycleOwner, TextToSpeech.OnInitListener {
 
     companion object {
         // This is an arbitrary number we are using to keep track of the permission
@@ -33,13 +37,22 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
     }
 
     private lateinit var neuralTalkAnalyzer: NeuralTalkAnalyzer
+    lateinit var tts: TextToSpeech
+    lateinit var audioManager: AudioManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
-        // Add this at the end of onCreate function
+        // TTS initialization
+        tts = TextToSpeech(this, this)
 
+        //Audio manager for volume control
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 20, 0)
+
+
+        // Add this at the end of onCreate function
         viewFinder = findViewById(R.id.view_finder)
 
         // Request camera permissions
@@ -74,6 +87,7 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
         })
         neuralTalkAnalyzer.description.observe(this, Observer {
             modalBottomSheet.text.postValue(it)
+            tts.speak(it, TextToSpeech.QUEUE_FLUSH, null, null)
         })
 
         frameLayout.setOnClickListener {
@@ -176,5 +190,24 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
      */
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            // Setting speech language
+            val result = tts.setLanguage(Locale.US)
+            // If your device doesn't support language you set above
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                // Cook simple toast message with message
+                Toast.makeText(this, "Language not supported", Toast.LENGTH_LONG).show()
+                Log.e("TTS", "Language is not supported")
+            }
+            // Check it)
+            // TTS is not initialized properly
+        } else {
+            Toast.makeText(this, "TTS Initilization Failed", Toast.LENGTH_LONG).show()
+            Log.e("TTS", "Initilization Failed")
+        }
     }
 }
