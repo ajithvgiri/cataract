@@ -5,9 +5,9 @@ import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
-import android.util.Size
 import android.view.Surface
 import android.view.TextureView
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -17,7 +17,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import com.ajithvgiri.cataract.R
-import com.ajithvgiri.cataract.camera.LuminosityAnalyzer
+import com.ajithvgiri.cataract.camera.NeuralTalkAnalyzer
+import kotlinx.android.synthetic.main.activity_camera.*
 import java.util.concurrent.Executors
 
 class CameraActivity : AppCompatActivity(), LifecycleOwner {
@@ -31,7 +32,7 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 
-    private lateinit var luminosityAnalyzer: LuminosityAnalyzer
+    private lateinit var neuralTalkAnalyzer: NeuralTalkAnalyzer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,11 +46,7 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
         if (allPermissionsGranted()) {
             viewFinder.post { startCamera() }
         } else {
-            ActivityCompat.requestPermissions(
-                this,
-                REQUIRED_PERMISSIONS,
-                REQUEST_CODE_PERMISSIONS
-            )
+            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
         // Every time the provided texture view changes, recompute layout
@@ -59,16 +56,29 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
 
         val modalBottomSheet = ModalBottomSheet()
 
-        luminosityAnalyzer = LuminosityAnalyzer()
-        luminosityAnalyzer.showDialog.observe(this@CameraActivity, Observer {
+        neuralTalkAnalyzer = NeuralTalkAnalyzer()
+        neuralTalkAnalyzer.showLoading.observe(this, Observer {
+            animation_view.visibility = if (it) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+        })
+        neuralTalkAnalyzer.showDialog.observe(this, Observer {
             if (it) {
-                Log.d("CameraX", "isShowing ${modalBottomSheet.dialog?.isShowing}")
+                Log.d("CameraX", "showDialog ${modalBottomSheet.dialog?.isShowing}")
                 if (modalBottomSheet.dialog?.isShowing == false || modalBottomSheet.dialog?.isShowing == null) {
                     modalBottomSheet.show(supportFragmentManager, ModalBottomSheet.TAG)
                 }
             }
         })
+        neuralTalkAnalyzer.description.observe(this, Observer {
+            modalBottomSheet.text.postValue(it)
+        })
 
+        frameLayout.setOnClickListener {
+            neuralTalkAnalyzer.analyse = true
+        }
 
     }
 
@@ -81,8 +91,7 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
 
     private fun startCamera() {
         // Create configuration object for the viewfinder use case
-        val previewConfig =
-            PreviewConfig.Builder().apply { setTargetResolution(Size(1280, 720)) }.build()
+        val previewConfig = PreviewConfig.Builder().build()
 
 
         // Build the viewfinder use case
@@ -113,7 +122,7 @@ class CameraActivity : AppCompatActivity(), LifecycleOwner {
 
         // Build the image analysis use case and instantiate our analyzer
         val analyzerUseCase = ImageAnalysis(analyzerConfig).apply {
-            setAnalyzer(executor, luminosityAnalyzer)
+            setAnalyzer(executor, neuralTalkAnalyzer)
         }
 
         // Bind use cases to lifecycle
