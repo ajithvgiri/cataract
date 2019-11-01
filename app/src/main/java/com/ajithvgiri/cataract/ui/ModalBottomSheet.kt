@@ -10,14 +10,15 @@ import com.ajithvgiri.cataract.R
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.android.synthetic.main.modal_bottom_sheet.*
 
-class ModalBottomSheet : BottomSheetDialogFragment() {
 
+class ModalBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "ModalBottomSheet"
     }
 
     val text = MutableLiveData<String>()
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,11 +28,11 @@ class ModalBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         text.observe(this, Observer {
             textView.text = it
         })
 
     }
+
 
 }
