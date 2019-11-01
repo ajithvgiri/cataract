@@ -199,4 +199,4 @@ fabric.properties
 !/gradle/wrapper/gradle-wrapper.jar
 
 ### Firebase
-app/google-services.json
+#app/google-services.json

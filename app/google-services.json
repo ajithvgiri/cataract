@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "857234029150",
+    "firebase_url": "https://cataract-95873.firebaseio.com",
+    "project_id": "cataract-95873",
+    "storage_bucket": "cataract-95873.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:857234029150:android:d3f80e67faea8e01ffd2cf",
+        "android_client_info": {
+          "package_name": "com.ajithvgiri.cataract"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "857234029150-2uoe79ak2dv86qsp01ce8i2sco43qlf6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ajithvgiri.cataract",
+            "certificate_hash": "e9447e9f6b7f66790cf971aec8e85ac46a5e21be"
+          }
+        },
+        {
+          "client_id": "857234029150-ud9hnqv1o779v09a9fvf2stl36v9sa73.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMOiXp737AiW15WaomnnWOhNrXevYURfs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "857234029150-ud9hnqv1o779v09a9fvf2stl36v9sa73.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
