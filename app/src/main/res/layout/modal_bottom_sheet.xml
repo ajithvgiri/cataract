@@ -13,14 +13,14 @@
 
         <!-- Bottom Sheet contents -->
         <TextView
+            android:id="@+id/textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-condensed"
             android:gravity="center"
             android:padding="16dp"
             android:text="@string/place_the_camera_to_near_object"
-            android:textSize="18sp"
-            android:visibility="gone" />
+            android:textSize="18sp" />
     </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

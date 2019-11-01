@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Cataract</string>
     <string name="place_the_camera_to_near_object">Place the camera to near object</string>
+    <string name="hint">Tap on a screen</string>
 </resources>
